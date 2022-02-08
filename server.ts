@@ -5,10 +5,10 @@ import TuitDao from "./daos/TuitDao";
 import UserDao from "./daos/UserDao";
 import mongoose from "mongoose";
 
-// // connect to the database
-// const DB_USERNAME = process.env.DB_USERNAME;
-// const DB_PASSWORD = process.env.DB_PASSWORD;
-const connectionString = 'mongodb+srv://giuseppi:supersecretpassword@cluster0.retsy.mongodb.net/Tuiter?retryWrites=true&w=majority';
+// connect to the database
+const DB_USERNAME = process.env.DB_USERNAME;
+const DB_PASSWORD = process.env.DB_PASSWORD;
+const connectionString = 'mongodb+srv://${DB_USERNAME}:${DB_PASSWORD}@cluster0.retsy.mongodb.net/Tuiter?retryWrites=true&w=majority';
 mongoose.connect(connectionString);
 
 // create RESTful web service API
