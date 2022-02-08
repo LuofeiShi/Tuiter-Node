@@ -19,5 +19,5 @@ const UserSchema = new mongoose.Schema({
     dateOfBirth: Date,
     joined: {type: Date, default: Date.now},
     location: Location,
-    }, {collection: 'users'});
+}, {collection: 'users'});
 export default UserSchema;
