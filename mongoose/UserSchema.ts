@@ -18,6 +18,6 @@ const UserSchema = new mongoose.Schema({
     biography: String,
     dateOfBirth: Date,
     joined: {type: Date, default: Date.now},
-    location: Location,
+    location: {latitude: Number, longitude: Number},
 }, {collection: 'users'});
 export default UserSchema;
