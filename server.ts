@@ -42,12 +42,11 @@ const DB_PASSWORD = process.env.DB_PASSWORD;    // using server env var
 const HOST = "cluster0.uvwbr.mongodb.net";
 const DB_NAME = "myFirstDatabase";
 const DB_QUERY = "retryWrites=true&w=majority";
+const SECRET = 'process.env.SECRET';
 const connectionString = `${PROTOCOL}://${DB_USERNAME}:${DB_PASSWORD}@${HOST}/${DB_NAME}?${DB_QUERY}`;
 
 // connect to the database
 mongoose.connect(connectionString);
-
-const SECRET = 'process.env.SECRET';
 
 let sess = {
     secret: process.env.EXPRESS_SESSION_SECRET,
