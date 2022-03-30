@@ -13,9 +13,9 @@
  * Connects to a remote MongoDB instance hosted on the Atlas cloud database
  * service
  */
-require('dotenv').config({
-    path:"./.env"
-});
+// require('dotenv').config({
+//     path:"./.env"
+// });
 import express, {Request, Response} from 'express';
 import UserController from "./controllers/UserController";
 import TuitController from "./controllers/TuitController";
