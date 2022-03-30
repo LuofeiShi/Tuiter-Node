@@ -30,7 +30,6 @@ export default class DislikeDao implements DislikeDaoI {
     /**
      * Check if there's a dislike document in the database for user/tuit combination
      * @param {string} uid the primary key of a user
-     * @param {string} tid the primary key of a tuit
      * @returns Promise To be notified when the users are retried from the database
      */
     findAllTuitsDislikedByUser = async (uid: string): Promise<Dislike[]> =>
