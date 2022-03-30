@@ -37,7 +37,6 @@ const connectionString = `${PROTOCOL}://${DB_USERNAME}:${DB_PASSWORD}@${HOST}/${
 
 // connect to the database
 mongoose.connect(connectionString);
-
 const app = express();
 
 app.use(cors({
