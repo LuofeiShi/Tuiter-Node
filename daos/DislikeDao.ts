@@ -31,10 +31,23 @@ export default class DislikeDao implements DislikeDaoI {
      * Check if there's a dislike document in the database for user/tuit combination
      * @param {string} uid the primary key of a user
      * @param {string} tid the primary key of a tuit
-     * @returns Promise To be notified if the user dislikes the given tuit
+     * @returns Promise To be notified when the users are retried from the database
      */
-    findAllTuitsDislikedByUser = async (uid: string, tid: string): Promise<any> =>
-        DislikeModel.findOne({tuit: tid, dislikedBy: uid});
+    findAllTuitsDislikedByUser = async (uid: string): Promise<Dislike[]> =>
+        DislikeModel.find({dislikeBy: uid}).populate({
+            path: "tuit",
+            populate: {
+                path: "postedBy"
+            }
+        }).exec();
+
+    /**
+     * Find all users that disliked a tuit by a given tuit id
+     * @param {string} tid the primary key of a tuit
+     * @returns Promise To be notified when dislikes are retrieved from the database
+     */
+    findAllUsersDislikedTuit = async (tid: string): Promise<Dislike[]> =>
+        DislikeModel.find({tuit: tid}).populate("dislikeBy").exec();
 
 
     /**
