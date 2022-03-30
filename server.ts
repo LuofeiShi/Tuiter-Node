@@ -32,7 +32,7 @@ const session = require("express-session");
 const app = express();
 app.use(cors({
     credential: true,
-    origin: 'https://musing-brahmagupta-eca401.netlify.app'
+    origin: ["http://localhost:3000", "https://musing-brahmagupta-eca401.netlify.app"]
 }));
 
 // build the connection string
