@@ -13,6 +13,9 @@
  * Connects to a remote MongoDB instance hosted on the Atlas cloud database
  * service
  */
+require('dotenv').config({
+    path:"./.env"
+});
 import express, {Request, Response} from 'express';
 import UserController from "./controllers/UserController";
 import TuitController from "./controllers/TuitController";
@@ -23,8 +26,14 @@ import MessageController from "./controllers/MessageController";
 import mongoose from "mongoose";
 import AuthenticationController from "./controllers/AuthenticationController";
 import SessionController from "./controllers/SessionController";
+
 var cors = require('cors')
 const session = require("express-session");
+const app = express();
+app.use(cors({
+    credential: true,
+    origin: 'http://localhost:3000'
+}));
 
 // build the connection string
 const PROTOCOL = "mongodb+srv";
@@ -37,26 +46,21 @@ const connectionString = `${PROTOCOL}://${DB_USERNAME}:${DB_PASSWORD}@${HOST}/${
 
 // connect to the database
 mongoose.connect(connectionString);
-const app = express();
-
-app.use(cors({
-    credential: true,
-    origin: 'http://localhost:3000'
-}));
 
 const SECRET = 'process.env.SECRET';
+
 let sess = {
-    secret: SECRET,
+    secret: process.env.EXPRESS_SESSION_SECRET,
     saveUninitialized: true,
     resave: true,
     cookie: {
-        secure: false
+        sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
+        secure: process.env.NODE_ENV === "production",
     }
 }
 
-if (process.env.ENVIRONMENT === 'PRODUCTION') {
+if (process.env.NODE_ENV === 'production') {
     app.set('trust proxy', 1) // trust first proxy
-    sess.cookie.secure = true // serve secure cookies
 }
 
 app.use(session(sess));
