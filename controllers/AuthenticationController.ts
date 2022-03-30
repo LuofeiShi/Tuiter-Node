@@ -32,15 +32,19 @@ const AuthenticationController = (app: Express) => {
         const user = req.body;
         const username = user.username;
         const password = user.password;
+        console.log(username);
         console.log(password);
-        const existingUser = await userDao.findUserByUsername(username);
+        const existingUser = await userDao
+            .findUserByUsername(username);
 
         if (!existingUser) {
+            console.log("user not exist");
             res.sendStatus(403);
             return;
         }
 
-        const match = await bcrypt.compare(password, existingUser.password);
+        const match = await bcrypt
+            .compare(password, existingUser.password);
 
         if (match) {
             existingUser.password = '*****';
@@ -48,6 +52,7 @@ const AuthenticationController = (app: Express) => {
             req.session['profile'] = existingUser;
             res.json(existingUser);
         } else {
+            console.log("password doesn't match");
             res.sendStatus(403);
         }
     }
@@ -75,6 +80,7 @@ const AuthenticationController = (app: Express) => {
         // @ts-ignore
         const profile = req.session['profile'];
         if (profile) {
+            profile.password = "";
             res.json(profile);
         } else {
             res.sendStatus(403);
