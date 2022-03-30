@@ -84,7 +84,7 @@ export default class TuitDao implements TuitDaoI{
     /**
      * Update a tuit's stats
      * @param tid the primary key of a tuit
-     * @param newStats the new stasts of a tuit
+     * @param newStats the new stats of a tuit
      * @return Promise to be notified when the tuit stats is updated in the database
      */
     updateLikes = async (tid: string, newStats: any): Promise<any> =>
