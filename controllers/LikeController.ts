@@ -41,6 +41,7 @@ export default class LikeController implements LikeControllerI {
             app.post("/api/users/:uid/likes/:tid", LikeController.likeController.userLikesTuit);
             app.delete("/api/users/:uid/unlikes/:tid", LikeController.likeController.userUnlikesTuit);
             app.put("/api/users/:uid/likes/:tid", LikeController.likeController.userTogglesTuitLikes);
+            app.get("/api/users/:uid/likes/:tid", LikeController.likeController.checkUserLikedTuit);
         }
         return LikeController.likeController;
     }
@@ -123,7 +124,7 @@ export default class LikeController implements LikeControllerI {
         const userId = uid === "me" && profile ?
             profile._id : uid;
         try {
-            const userAlreadyLikedTuit = await likeDao.findUserLikedTuit(userId, tid);
+            const userAlreadyLikedTuit = await likeDao.checkUserLikedTuit(userId, tid);
             const howManyLikedTuit = await likeDao.countHowManyLikedTuit(tid);
             let tuit = await tuitDao.findTuitById(tid);
             if (userAlreadyLikedTuit) {
@@ -147,14 +148,14 @@ export default class LikeController implements LikeControllerI {
      * @param {Response} res Represents response to client, including the
      * body formatted as JSON object containing the like objects or null
      */
-    findUserLikedTuit = async (req: Request, res: Response) => {
+    checkUserLikedTuit = async (req: Request, res: Response) => {
         const uid = req.params.uid;
         const tid = req.params.tid;
         // @ts-ignore
         const profile = req.session['profile'];
         const userId = uid === 'me' && profile ?
             profile._id : uid;
-        LikeController.likeDao.findUserLikedTuit(userId, tid)
+        LikeController.likeDao.checkUserLikedTuit(userId, tid)
             .then(like => res.json(like));
     }
 };
