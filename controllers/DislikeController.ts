@@ -32,8 +32,9 @@ export default class DislikeController implements DislikeControllerI {
     public static getInstance = (app: Express): DislikeController => {
         if(DislikeController.dislikeController === null) {
             DislikeController.dislikeController = new DislikeController();
-            app.get("/api/users/:uid/dislikes/:tid", DislikeController.dislikeController.findAllTuitsDislikedByUser);
+            app.get("/api/users/:uid/dislikes/", DislikeController.dislikeController.findAllTuitsDislikedByUser);
             app.put("/api/users/:uid/dislikes/:tid", DislikeController.dislikeController.userTogglesTuitDislikes);
+            app.get("/api/users/:uid/dislikes/:tid", DislikeController.dislikeController.checkUserDislikedTuit);
         }
         return DislikeController.dislikeController;
     }
@@ -95,5 +96,23 @@ export default class DislikeController implements DislikeControllerI {
         } catch (e) {
             res.sendStatus(404);
         }
+    }
+
+    /**
+     * Check if the user has already disliked the tuit
+     * @param {Request} req Represents request from client, including the path
+     * parameter uid representing the user, and the tid representing the tuit
+     * @param {Response} res Represents response to client, including the
+     * body formatted as JSON object containing the dislike objects or null
+     */
+    checkUserDislikedTuit = async (req: Request, res: Response) => {
+        const uid = req.params.uid;
+        const tid = req.params.tid;
+        // @ts-ignore
+        const profile = req.session['profile'];
+        const userId = uid === 'me' && profile ?
+            profile._id : uid;
+        DislikeController.dislikeDao.checkUserDislikesTuit(userId, tid)
+            .then(dislike => res.json(dislike));
     }
 };
