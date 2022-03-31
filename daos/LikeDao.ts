@@ -44,7 +44,7 @@ export default class LikeDao implements LikeDaoI {
      * @param {string} tid the primary key of a tuit
      * @returns Promise To be notified if the user likes the given tuit
      */
-    findUserLikedTuit = async (uid: string, tid: string): Promise<any> =>
+    checkUserLikedTuit = async (uid: string, tid: string): Promise<any> =>
             LikeModel.findOne({tuit: tid, likedBy: uid});
 
     /**

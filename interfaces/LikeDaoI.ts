@@ -9,4 +9,5 @@ export default interface LikeDaoI {
     userUnlikesTuit (tid: string, uid: string): Promise<any>;
     userLikesTuit (tid: string, uid: string): Promise<Like>;
     countHowManyLikedTuit (tid: string): Promise<any>;
+    checkUserLikedTuit (tid: string, uid: string): Promise<any>;
 };
