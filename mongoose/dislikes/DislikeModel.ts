@@ -4,5 +4,5 @@
  */
 import mongoose from "mongoose";
 import DislikeSchema from "./DislikeSchema";
-const LikeModel = mongoose.model("LikeModel", DislikeSchema);
-export default LikeModel;
+const DislikeModel = mongoose.model("DislikeModel", DislikeSchema);
+export default DislikeModel;
