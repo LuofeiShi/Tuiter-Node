@@ -5,6 +5,7 @@ import {Express, Request, Response} from "express";
 import DislikeDao from "../daos/DislikeDao";
 import TuitDao from "../daos/TuitDao";
 import DislikeControllerI from "../interfaces/DislikeControllerI";
+import LikeController from "./LikeController";
 
 /**
  * @class DislikeController Implements RESTful Web service API for dislikes resource.
@@ -71,6 +72,14 @@ export default class DislikeController implements DislikeControllerI {
         }
     }
 
+    /**
+     * @param {Request} req Represents request from client, including the
+     * path parameters uid and tid representing the user that is disliking the tuit
+     * and the tuit being disliked
+     * @param {Response} res Represents response to client, including the
+     * body formatted as JSON containing the new dislikes that was inserted in the
+     * database
+     */
     userTogglesTuitDislikes = async (req: Request, res: Response) => {
         const dislikeDao = DislikeController.dislikeDao;
         const tuitDao = DislikeController.tuitDao;
@@ -81,7 +90,7 @@ export default class DislikeController implements DislikeControllerI {
         const userId = uid === 'me' && profile ?
             profile._id : uid;
         try {
-            const userAlreadyDislikedTuit = await dislikeDao.findAllTuitsDislikedByUser(userId);
+            const userAlreadyDislikedTuit = await dislikeDao.checkUserDislikesTuit(userId, tid);
             const howManyLikedTuit = await dislikeDao.countHowManyDislikedTuit(tid);
             let tuit = await tuitDao.findTuitById(tid);
             if (userAlreadyDislikedTuit) {
