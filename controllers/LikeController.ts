@@ -4,6 +4,7 @@
 import {Express, Request, Response} from "express";
 import LikeDao from "../daos/LikeDao";
 import TuitDao from "../daos/TuitDao";
+import DislikeDao from "../daos/DislikeDao";
 import LikeControllerI from "../interfaces/LikeControllerI";
 
 /**
@@ -72,13 +73,20 @@ export default class LikeController implements LikeControllerI {
         const profile = req.session['profile'];
         const userId = uid === 'me' && profile ?
             profile._id : uid;
-
-        LikeController.likeDao.findAllTuitsLikedByUser(userId)
-            .then(likes => {
-                const likesNonNullTuits = likes.filter(like => like.tuit);
-                const tuitsFromLikes = likesNonNullTuits.map(like => like.tuit);
-                res.json(tuitsFromLikes);
-            });
+        if (userId === 'me') {
+            res.sendStatus(404);
+        } else {
+            try {
+                LikeController.likeDao.findAllTuitsLikedByUser(userId)
+                    .then(likes => {
+                        const likesNonNullTuits = likes.filter(like => like.tuit);
+                        const tuitsFromLikes = likesNonNullTuits.map(like => like.tuit);
+                        res.json(tuitsFromLikes);
+                    });
+            } catch (e) {
+                res.sendStatus(404);
+            }
+        }
     }
 
     /**
@@ -123,21 +131,39 @@ export default class LikeController implements LikeControllerI {
         const profile = req.session['profile'];
         const userId = uid === "me" && profile ?
             profile._id : uid;
-        try {
-            const userAlreadyLikedTuit = await likeDao.checkUserLikedTuit(userId, tid);
-            const howManyLikedTuit = await likeDao.countHowManyLikedTuit(tid);
-            let tuit = await tuitDao.findTuitById(tid);
-            if (userAlreadyLikedTuit) {
-                await likeDao.userUnlikesTuit(userId, tid);
-                tuit.stats.likes = howManyLikedTuit - 1;
-            } else {
-                await LikeController.likeDao.userLikesTuit(userId, tid);
-                tuit.stats.likes = howManyLikedTuit + 1;
-            }
-            await tuitDao.updateLikes(tid, tuit.stats);
-            res.sendStatus(200);
-        } catch (e) {
+        if (userId === "me") {
             res.sendStatus(404);
+        } else {
+            try {
+                // implement the like against dislike logic here.
+                // the concept is that when the dislike is highlighted and the user
+                // clicks like icon, then we need to discard the dislike and implement
+                // the like
+                const userAlreadyLikedTuit = await likeDao.checkUserLikedTuit(userId, tid);
+                const howManyLikedTuit = await likeDao.countHowManyLikedTuit(tid);
+                let tuit = await tuitDao.findTuitById(tid);
+                if (userAlreadyLikedTuit) {
+                    // when a user has already liked a tuit, then discard the like
+                    await likeDao.userUnlikesTuit(userId, tid)
+                    tuit.stats.likes = howManyLikedTuit - 1;
+                } else {
+                    await LikeController.likeDao.userLikesTuit(userId, tid);
+                    tuit.stats.likes = howManyLikedTuit + 1;
+                    // when a user has already disliked a tuit, then discard the dislike
+                    const dislikeDao = DislikeDao.getInstance();
+                    const userAlreadyDislikedTuit = await dislikeDao.checkUserDislikesTuit(userId, tid);
+                    if (userAlreadyDislikedTuit) {
+                        // update dislike number
+                        const dislikes = await dislikeDao.countHowManyDislikedTuit(tid);
+                        tuit.stats.dislikes = dislikes - 1; // update dislike account
+                        await dislikeDao.userDislikesTuit(userId, tid);
+                    }
+                }
+                await tuitDao.updateLikes(tid, tuit.stats);
+                res.sendStatus(200);
+            } catch (e) {
+                res.sendStatus(404);
+            }
         }
     }
 
@@ -150,12 +176,21 @@ export default class LikeController implements LikeControllerI {
      */
     checkUserLikedTuit = async (req: Request, res: Response) => {
         const uid = req.params.uid;
-        const tid = req.params.tid;
         // @ts-ignore
         const profile = req.session['profile'];
         const userId = uid === 'me' && profile ?
             profile._id : uid;
-        LikeController.likeDao.checkUserLikedTuit(userId, tid)
-            .then(like => res.json(like));
+        if (userId === "me") {
+            res.sendStatus(404);
+        } else {
+            let tuit = await LikeController.likeDao.checkUserLikedTuit(userId, req.params.tid);
+            if (tuit) {
+                const data = {'like' : true};
+                res.json(data);
+            } else {
+                const data = {'like' : false};
+                res.json(data);
+            }
+        }
     }
 };
