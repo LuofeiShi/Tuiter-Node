@@ -92,15 +92,13 @@ export default class DislikeController implements DislikeControllerI {
         } else {
             try {
                 const userAlreadyDislikedTuit = await dislikeDao.checkUserDislikesTuit(userId, tid);
-                const howManyLikedTuit = await dislikeDao.countHowManyDislikedTuit(tid);
+                const dislikes = await dislikeDao.countHowManyDislikedTuit(tid);
                 let tuit = await tuitDao.findTuitById(tid);
                 if (userAlreadyDislikedTuit) {
                     // discard dislike
                     await dislikeDao.userUndislikeTuit(userId, tid);
-                    tuit.stats.dislikes = howManyLikedTuit - 1;
+                    tuit.stats.dislikes = dislikes - 1;
                 } else {
-                    await dislikeDao.userDislikesTuit(userId, tid);
-                    tuit.stats.dislikes = howManyLikedTuit + 1;
                     // check if user has liked the tuit
                     const likeDao = LikeDao.getInstance();
                     const userAlreadyLikedTuit = await likeDao.checkUserLikedTuit(userId, tid);
@@ -110,6 +108,8 @@ export default class DislikeController implements DislikeControllerI {
                         tuit.stats.likes = likes - 1;
                         await likeDao.userUnlikesTuit(userId, tid);
                     }
+                    await dislikeDao.userDislikesTuit(userId, tid);
+                    tuit.stats.dislikes = dislikes + 1;
                 }
                 await tuitDao.updateLikes(tid, tuit.stats);
                 res.sendStatus(200);
@@ -136,8 +136,14 @@ export default class DislikeController implements DislikeControllerI {
         if (userId === "me") {
             res.sendStatus(404);
         } else {
-            DislikeController.dislikeDao.checkUserDislikesTuit(userId, tid)
-                .then(dislike => res.json(dislike));
+            let tuit = await DislikeController.dislikeDao.checkUserDislikesTuit(userId, tid);
+            if (tuit) {
+                const data = {'dislike' : true};
+                res.json(data);
+            } else {
+                const data = {'dislike' : false};
+                res.json(data);
+            }
         }
     }
 };
