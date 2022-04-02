@@ -39,7 +39,7 @@ export default class LikeController implements LikeControllerI {
             LikeController.likeController = new LikeController();
             app.get("/api/users/:uid/likes", LikeController.likeController.findAllTuitsLikedByUser);
             app.get("/api/tuits/:tid/likes", LikeController.likeController.findAllUsersThatLikedTuit);
-            app.post("/api/users/:uid/likes/:tid", LikeController.likeController.userLikesTuit);
+            // app.post("/api/users/:uid/likes/:tid", LikeController.likeController.userLikesTuit);
             app.delete("/api/users/:uid/unlikes/:tid", LikeController.likeController.userUnlikesTuit);
             app.put("/api/users/:uid/likes/:tid", LikeController.likeController.userTogglesTuitLikes);
             app.get("/api/users/:uid/likes/:tid", LikeController.likeController.checkUserLikedTuit);
@@ -135,20 +135,15 @@ export default class LikeController implements LikeControllerI {
             res.sendStatus(404);
         } else {
             try {
-                // implement the like against dislike logic here.
-                // the concept is that when the dislike is highlighted and the user
-                // clicks like icon, then we need to discard the dislike and implement
-                // the like
                 const userAlreadyLikedTuit = await likeDao.checkUserLikedTuit(userId, tid);
-                const howManyLikedTuit = await likeDao.countHowManyLikedTuit(tid);
+                const likes = await likeDao.countHowManyLikedTuit(tid);
                 let tuit = await tuitDao.findTuitById(tid);
                 if (userAlreadyLikedTuit) {
                     // when a user has already liked a tuit, then discard the like
                     await likeDao.userUnlikesTuit(userId, tid)
-                    tuit.stats.likes = howManyLikedTuit - 1;
+                    tuit.stats.likes = likes - 1;
                 } else {
-                    await LikeController.likeDao.userLikesTuit(userId, tid);
-                    tuit.stats.likes = howManyLikedTuit + 1;
+
                     // when a user has already disliked a tuit, then discard the dislike
                     const dislikeDao = DislikeDao.getInstance();
                     const userAlreadyDislikedTuit = await dislikeDao.checkUserDislikesTuit(userId, tid);
@@ -156,8 +151,10 @@ export default class LikeController implements LikeControllerI {
                         // update dislike number
                         const dislikes = await dislikeDao.countHowManyDislikedTuit(tid);
                         tuit.stats.dislikes = dislikes - 1; // update dislike account
-                        await dislikeDao.userDislikesTuit(userId, tid);
+                        await dislikeDao.userUndislikeTuit(userId, tid);
                     }
+                    await LikeController.likeDao.userLikesTuit(userId, tid);
+                    tuit.stats.likes = likes + 1;
                 }
                 await tuitDao.updateLikes(tid, tuit.stats);
                 res.sendStatus(200);
