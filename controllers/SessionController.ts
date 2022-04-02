@@ -6,6 +6,7 @@ const SessionController = (app: Express) => {
         var value = req.params['value'];
         // @ts-ignore
         req.session[name] = value;
+        // @ts-ignore
         res.send(req.session);
     }
 
