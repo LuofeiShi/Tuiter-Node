@@ -3,6 +3,7 @@
  */
 import {Express, Request, Response} from "express";
 import DislikeDao from "../daos/DislikeDao";
+import LikeDao from "../daos/LikeDao";
 import TuitDao from "../daos/TuitDao";
 import DislikeControllerI from "../interfaces/DislikeControllerI";
 
@@ -59,8 +60,6 @@ export default class DislikeController implements DislikeControllerI {
         if (userId === "me") {
             res.sendStatus(404);
         } else {
-            // DislikeController.dislikeDao.findAllTuitsDislikedByUser(userId, tid)
-            //     .then(dislike => res.json(dislike));
             try {
                 let dislikes = await DislikeController.dislikeDao.findAllTuitsDislikedByUser(userId);
                 const tuits = dislikes.map(likes => likes.tuit);
@@ -71,6 +70,14 @@ export default class DislikeController implements DislikeControllerI {
         }
     }
 
+    /**
+     * @param {Request} req Represents request from client, including the
+     * path parameters uid and tid representing the user that is disliking the tuit
+     * and the tuit being disliked
+     * @param {Response} res Represents response to client, including the
+     * body formatted as JSON containing the new dislikes that was inserted in the
+     * database
+     */
     userTogglesTuitDislikes = async (req: Request, res: Response) => {
         const dislikeDao = DislikeController.dislikeDao;
         const tuitDao = DislikeController.tuitDao;
@@ -80,21 +87,35 @@ export default class DislikeController implements DislikeControllerI {
         const profile = req.session['profile'];
         const userId = uid === 'me' && profile ?
             profile._id : uid;
-        try {
-            const userAlreadyDislikedTuit = await dislikeDao.findAllTuitsDislikedByUser(userId);
-            const howManyLikedTuit = await dislikeDao.countHowManyDislikedTuit(tid);
-            let tuit = await tuitDao.findTuitById(tid);
-            if (userAlreadyDislikedTuit) {
-                await dislikeDao.userUndislikeTuit(userId, tid);
-                tuit.stats.dislikes = howManyLikedTuit - 1;
-            } else {
-                await DislikeController.dislikeDao.userDislikesTuit(userId, tid);
-                tuit.stats.dislikes = howManyLikedTuit + 1;
-            }
-            await tuitDao.updateLikes(tid, tuit.stats);
-            res.sendStatus(200);
-        } catch (e) {
+        if (userId === "me") {
             res.sendStatus(404);
+        } else {
+            try {
+                const userAlreadyDislikedTuit = await dislikeDao.checkUserDislikesTuit(userId, tid);
+                const dislikes = await dislikeDao.countHowManyDislikedTuit(tid);
+                let tuit = await tuitDao.findTuitById(tid);
+                if (userAlreadyDislikedTuit) {
+                    // discard dislike
+                    await dislikeDao.userUndislikeTuit(userId, tid);
+                    tuit.stats.dislikes = dislikes - 1;
+                } else {
+                    // check if user has liked the tuit
+                    const likeDao = LikeDao.getInstance();
+                    const userAlreadyLikedTuit = await likeDao.checkUserLikedTuit(userId, tid);
+                    if (userAlreadyLikedTuit) {
+                        // discard the like, adjust the number of like in total
+                        const likes = await likeDao.countHowManyLikedTuit(tid);
+                        tuit.stats.likes = likes - 1;
+                        await likeDao.userUnlikesTuit(userId, tid);
+                    }
+                    await dislikeDao.userDislikesTuit(userId, tid);
+                    tuit.stats.dislikes = dislikes + 1;
+                }
+                await tuitDao.updateLikes(tid, tuit.stats);
+                res.sendStatus(200);
+            } catch (e) {
+                res.sendStatus(404);
+            }
         }
     }
 
@@ -112,7 +133,17 @@ export default class DislikeController implements DislikeControllerI {
         const profile = req.session['profile'];
         const userId = uid === 'me' && profile ?
             profile._id : uid;
-        DislikeController.dislikeDao.checkUserDislikesTuit(userId, tid)
-            .then(dislike => res.json(dislike));
+        if (userId === "me") {
+            res.sendStatus(404);
+        } else {
+            let tuit = await DislikeController.dislikeDao.checkUserDislikesTuit(userId, tid);
+            if (tuit) {
+                const data = {'dislike' : true};
+                res.json(data);
+            } else {
+                const data = {'dislike' : false};
+                res.json(data);
+            }
+        }
     }
 };
