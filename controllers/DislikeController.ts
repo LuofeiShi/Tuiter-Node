@@ -57,7 +57,7 @@ export default class DislikeController implements DislikeControllerI {
         let userId = uid === 'me' && profile ?
             // @ts-ignore
             profile._id: uid;
-        if (userId === "me") {
+        if (userId === 'me') {
             res.sendStatus(404);
         } else {
             try {
@@ -87,7 +87,7 @@ export default class DislikeController implements DislikeControllerI {
         const profile = req.session['profile'];
         const userId = uid === 'me' && profile ?
             profile._id : uid;
-        if (userId === "me") {
+        if (userId === 'me') {
             res.sendStatus(404);
         } else {
             try {
@@ -133,7 +133,7 @@ export default class DislikeController implements DislikeControllerI {
         const profile = req.session['profile'];
         const userId = uid === 'me' && profile ?
             profile._id : uid;
-        if (userId === "me") {
+        if (userId === 'me') {
             res.sendStatus(404);
         } else {
             let tuit = await DislikeController.dislikeDao.checkUserDislikesTuit(userId, tid);
