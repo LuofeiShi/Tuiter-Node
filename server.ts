@@ -13,9 +13,6 @@
  * Connects to a remote MongoDB instance hosted on the Atlas cloud database
  * service
  */
-require('dotenv').config({
-    path:"./.env"
-});
 import express, {Request, Response} from 'express';
 import UserController from "./controllers/UserController";
 import TuitController from "./controllers/TuitController";
@@ -27,17 +24,38 @@ import MessageController from "./controllers/MessageController";
 import mongoose from "mongoose";
 import AuthenticationController from "./controllers/AuthenticationController";
 import SessionController from "./controllers/SessionController";
+import bodyParser from "body-parser";
 
-var cors = require('cors')
+var cors = require('cors');
+const session = require("express-session");
+
 const app = express();
+app.use(bodyParser.json());
 
 app.use(cors({
     credentials: true,
-    origin: 'http://localhost:3000'
+    origin: ['http://localhost:3000', process.env.FRONTEND]
 }));
 
+let sess = {
+    secret: process.env.SECRET,
+    saveUninitialized: true,
+    resave: true,
+    cookie: {
+        sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
+        secure: process.env.ENV
+    }
+};
+
+if (process.env.ENV === 'PRODUCTION') {
+    app.set('trust proxy', 1) // trust first proxy
+}
+
+if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1) // trust first proxy
+}
+
 // build the connection string
-const session = require("express-session");
 const PROTOCOL = "mongodb+srv";
 const DB_USERNAME = process.env.DB_USERNAME;    // using server env var
 const DB_PASSWORD = process.env.DB_PASSWORD;    // using server env var
@@ -47,39 +65,8 @@ const DB_QUERY = "retryWrites=true&w=majority";
 const SECRET = 'process.env.SECRET';
 const connectionString = `${PROTOCOL}://${DB_USERNAME}:${DB_PASSWORD}@${HOST}/${DB_NAME}?${DB_QUERY}`;
 
-
 // connect to the database
 mongoose.connect(connectionString);
-
-
-
-// let sess = {
-//     secret: process.env.EXPRESS_SESSION_SECRET,
-//     saveUninitialized: true,
-//     resave: true,
-//     cookie: {
-//         sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
-//         secure: process.env.NODE_ENV === "production",
-//     }
-// }
-let sess = {
-    secret: process.env.SECRET,
-    saveUninitialized: true,
-    resave: true,
-    cookie: {
-        secure: false
-    }
-}
-
-if (process.env.ENV === 'PRODUCTION') {
-    app.set('trust proxy', 1) // trust first proxy
-    sess.cookie.secure = true // serve secure cookies
-}
-
-
-if (process.env.NODE_ENV === 'production') {
-    app.set('trust proxy', 1) // trust first proxy
-}
 
 app.use(session(sess));
 app.use(express.json());
