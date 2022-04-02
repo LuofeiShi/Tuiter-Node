@@ -30,11 +30,12 @@ var cors = require('cors');
 const session = require("express-session");
 
 const app = express();
-app.use(bodyParser.json());
+
 
 app.use(cors({
     credentials: true,
-    origin: ['http://localhost:3000', process.env.FRONTEND]
+//    origin: ['http://localhost:3000', process.env.FRONTEND]
+    origin: process.env.FRONTEND
 }));
 
 let sess = {
@@ -66,7 +67,7 @@ mongoose.connect(connectionString);
 
 app.use(session(sess));
 app.use(express.json());
-
+//app.use(bodyParser.json());
 app.get('/', (req: Request, res: Response) =>
     res.send('Welcome!'));
 
