@@ -33,7 +33,8 @@ export default class DislikeDao implements DislikeDaoI {
      * @returns Promise To be notified when the users are retried from the database
      */
     findAllTuitsDislikedByUser = async (uid: string): Promise<Dislike[]> =>
-        DislikeModel.find({dislikeBy: uid})
+        DislikeModel
+            .find({dislikeBy: uid})
             .populate({
                 path: "tuit",
                 populate: {
