@@ -33,7 +33,7 @@ export default class DislikeController implements DislikeControllerI {
     public static getInstance = (app: Express): DislikeController => {
         if(DislikeController.dislikeController === null) {
             DislikeController.dislikeController = new DislikeController();
-            app.get("/api/users/:uid/dislikes/", DislikeController.dislikeController.findAllTuitsDislikedByUser);
+            app.get("/api/users/:uid/dislikes", DislikeController.dislikeController.findAllTuitsDislikedByUser);
             app.put("/api/users/:uid/dislikes/:tid", DislikeController.dislikeController.userTogglesTuitDislikes);
             app.get("/api/users/:uid/dislikes/:tid", DislikeController.dislikeController.checkUserDislikedTuit);
         }
