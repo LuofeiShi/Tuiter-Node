@@ -51,7 +51,6 @@ export default class DislikeController implements DislikeControllerI {
      */
     findAllTuitsDislikedByUser = async (req: Request, res: Response) => {
         const uid = req.params.uid;
-        const tid = req.params.tid;
         // @ts-ignore
         const profile = req.session['profile'];
         let userId = uid === 'me' && profile ?
@@ -61,9 +60,12 @@ export default class DislikeController implements DislikeControllerI {
             res.sendStatus(404);
         } else {
             try {
-                let dislikes = await DislikeController.dislikeDao.findAllTuitsDislikedByUser(userId);
-                const tuits = dislikes.map(likes => likes.tuit);
-                res.json(tuits);
+                DislikeController.dislikeDao.findAllTuitsDislikedByUser(userId)
+                    .then(dislikes => {
+                        const dislikesNonNullTuits = dislikes.filter(dislike => dislike.tuit);
+                        const tuitsFromDislikes = dislikesNonNullTuits.map(dislike => dislike.tuit);
+                        res.json(tuitsFromDislikes);
+                    });
             } catch (e) {
                 res.sendStatus(404);
             }
