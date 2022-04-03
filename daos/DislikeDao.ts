@@ -34,7 +34,7 @@ export default class DislikeDao implements DislikeDaoI {
      */
     findAllTuitsDislikedByUser = async (uid: string): Promise<Dislike[]> =>
         DislikeModel
-            .find({dislikeBy: uid})
+            .find({dislikedBy: uid})
             .populate({
                 path: "tuit",
                 populate: {
@@ -49,7 +49,8 @@ export default class DislikeDao implements DislikeDaoI {
      * @returns Promise To be notified when dislikes are retrieved from the database
      */
     findAllUsersDislikedTuit = async (tid: string): Promise<Dislike[]> =>
-        DislikeModel.find({tuit: tid})
+        DislikeModel
+            .find({tuit: tid})
             .populate("dislikeBy")
             .exec();
 
@@ -59,7 +60,7 @@ export default class DislikeDao implements DislikeDaoI {
      * @param {string} tid the primary key of a tuit disliked by a user
      * @returns Promise To be notified when a dislike is inserted into the database
      */
-    userDislikesTuit = async (uid: string, tid: string): Promise<Dislike> =>
+    userDislikesTuit = async (uid: string, tid: string): Promise<any> =>
         DislikeModel.create({tuit: tid, dislikedBy: uid});
 
     /**
